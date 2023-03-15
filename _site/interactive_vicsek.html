@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vicsek Model Simulation</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+    }
+
+    #simulationCanvas {
+      display: block;
+      position: absolute;
+    }
+
+    #controlCenter {
+      position: absolute;
+      left: 10px;
+      top: 10px;
+      padding: 10px;
+      background-color: rgba(255, 255, 255, 0.7);
+      border-radius: 5px;
+    }
+
+    .sliderContainer {
+        display: block;
+        width: 160px;
+        text-align: left;
+    }
+
+    .slider {
+      margin-left: 5px;
+    }
+
+    .slider-container {
+        display: block;
+        width: 120px;
+        text-align: center;
+      }
+
+  </style>
+</head>
+<body>
+    
+  <canvas id="simulationCanvas"></canvas>
+  <div id="controlCenter">
+    <div class="sliderContainer">
+      <label>Particles: <span id="numParticlesValue">1000</span></label>
+      <input type="range" min="10" max="2000" value="1000" class="slider" id="numParticles">
+    </div>
+    <div class="sliderContainer">
+      <label>Speed: <span id="speedValue">2</span></label>
+      <input type="range" min="0.1" max="10" step="0.1" value="2" class="slider" id="speed">
+    </div>
+    <div class="sliderContainer">
+      <label>Interaction Radius: <span id="radiusValue">5</span></label>
+      <input type="range" min="1" max="20" value="5" class="slider" id="radius">
+    </div>
+    <div class="sliderContainer">
+      <label>Alignment: <span id="alignmentValue">0.05</span></label>
+      <input type="range" min="0" max="1" step="0.001" value="0.05" class="slider" id="alignment">
+    </div>
+    <div class="sliderContainer">
+      <label>Noise: <span id="noiseValue">0.1</span></label>
+      <input type="range" min="0" max="1" step="0.001" value="0.1" class="slider" id="noise">
+    </div>
+    <div class="sliderContainer">
+      <label>Particle Size: <span id="particleSizeValue">5</span></label>
+      <input type="range" min="1" max="20" value="5" class="slider" id="particleSize">
+    </div>
+    <div>
+      <label>Particle Type:</label>
+      <select id="particleType">
+        <option value="arrow">Fish</option>
+        <option value="dot">Dot</option>
+      </select>
+    </div>
+    <div>
+      <input type="checkbox" id="invertColors">
+      <label for="invertColors">Invert Colors</label>
+    </div>
+
+    <script>
+      const canvas = document.getElementById('simulationCanvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+  
+      const numParticlesSlider = document.getElementById('numParticles');
+      const numParticlesValue = document.getElementById('numParticlesValue');
+      const speedSlider = document.getElementById('speed');
+      const speedValue = document.getElementById('speedValue');
+      const radiusSlider = document.getElementById('radius');
+      const radiusValue = document.getElementById('radiusValue');
+      const alignmentSlider = document.getElementById('alignment');
+      const alignmentValue = document.getElementById('alignmentValue');
+      const noiseSlider = document.getElementById('noise');
+      const noiseValue = document.getElementById('noiseValue');
+      const particleSizeSlider = document.getElementById('particleSize');
+      const particleSizeValue = document.getElementById('particleSizeValue');
+      const particleTypeSelect = document.getElementById('particleType');
+      const invertColorsCheckbox = document.getElementById('invertColors');
+  
+      let NUM_PARTICLES = parseInt(numParticlesSlider.value);
+      let SPEED = parseFloat(speedSlider.value);
+      let INTERACTION_RADIUS = parseFloat(radiusSlider.value);
+      let ALIGNMENT_FORCE = parseFloat(alignmentSlider.value);
+      let NOISE = parseFloat(noiseSlider.value);
+      let PARTICLE_SIZE = parseFloat(particleSizeSlider.value);
+      let PARTICLE_TYPE = particleTypeSelect.value;
+      let INVERT_COLORS = invertColorsCheckbox.checked;
+  
+      numParticlesSlider.oninput = function() {
+        NUM_PARTICLES = parseInt(this.value);
+        numParticlesValue.innerHTML = this.value;
+        resetParticles();
+      }
+  
+      speedSlider.oninput = function() {
+        SPEED = parseFloat(this.value);
+        speedValue.innerHTML = this.value;
+      }
+  
+      radiusSlider.oninput = function() {
+        INTERACTION_RADIUS = parseFloat(this.value);
+        radiusValue.innerHTML = this.value;
+      }
+  
+      alignmentSlider.oninput = function() {
+        ALIGNMENT_FORCE = parseFloat(this.value);
+        alignmentValue.innerHTML = this.value;
+      }
+  
+      noiseSlider.oninput = function() {
+        NOISE = parseFloat(this.value);
+        noiseValue.innerHTML = this.value;
+      }
+  
+      particleSizeSlider.oninput = function() {
+        PARTICLE_SIZE = parseFloat(this.value);
+        particleSizeValue.innerHTML = this.value;
+      }
+  
+      particleTypeSelect.onchange = function() {
+        PARTICLE_TYPE = this.value;
+      }
+  
+      invertColorsCheckbox.onchange = function() {
+        INVERT_COLORS = this.checked;
+      }
+  
+      class Particle {
+        constructor(x, y, angle) {
+          this.x = x;
+          this.y = y;
+          this.angle = angle;
+        }
+  
+        update(particles) {
+        let sumX = 0;
+        let sumY = 0;
+        let count = 0;
+
+        particles.forEach(particle => {
+          const dx = this.x - particle.x;
+          const dy = this.y - particle.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+
+          if (distance < INTERACTION_RADIUS * 2 && distance > 0) {
+            sumX += Math.cos(particle.angle);
+            sumY += Math.sin(particle.angle);
+            count++;
+          }
+        });
+
+        if (count > 0) {
+          const avgAngle = Math.atan2(sumY / count, sumX / count);
+          this.angle += ALIGNMENT_FORCE * (avgAngle - this.angle);
+        }
+
+        this.angle += (Math.random() - 0.5) * NOISE * 2;
+
+        this.x += SPEED * Math.cos(this.angle);
+        this.y += SPEED * Math.sin(this.angle);
+
+        if (this.x < 0) this.x += canvas.width;
+        if (this.x > canvas.width) this.x -= canvas.width;
+        if (this.y < 0) this.y += canvas.height;
+        if (this.y > canvas.height) this.y -= canvas.height;
+      }
+
+
+      draw() {
+        if (INVERT_COLORS) {
+          ctx.fillStyle = 'white';
+          ctx.strokeStyle = 'white';
+        } else {
+          ctx.fillStyle = 'black';
+          ctx.strokeStyle = 'black';
+        }
+
+        if (PARTICLE_TYPE === 'dot') {
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, PARTICLE_SIZE, 0, 2 * Math.PI);
+          ctx.fill();
+        } else if (PARTICLE_TYPE === 'arrow') {
+            ctx.save();
+          ctx.translate(this.x, this.y);
+          ctx.rotate(this.angle);
+
+          // 鱼的身体
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.quadraticCurveTo(PARTICLE_SIZE * 1.4, -PARTICLE_SIZE, PARTICLE_SIZE * 1.7, 0);
+          ctx.quadraticCurveTo(PARTICLE_SIZE * 1.4, PARTICLE_SIZE, 0, 0);
+          ctx.fill();
+
+          // 鱼的尾巴
+          ctx.beginPath();
+          ctx.moveTo(-PARTICLE_SIZE * 0.2, 0);
+          ctx.lineTo(-PARTICLE_SIZE * 1.2, -PARTICLE_SIZE / 2);
+          ctx.lineTo(-PARTICLE_SIZE * 1.2, PARTICLE_SIZE / 2);
+          ctx.closePath();
+          ctx.fill();
+
+          // 鱼头
+          ctx.beginPath();
+          ctx.arc(PARTICLE_SIZE * 1.7, 0, PARTICLE_SIZE / 2, 0, 2 * Math.PI);
+          ctx.fill();
+
+
+          ctx.restore();
+        }
+      }
+    }
+
+    let particles = [];
+
+    function createParticle() {
+      const x = Math.random() * canvas.width;
+      const y = Math.random() * canvas.height;
+      const angle = (Math.random())* Math.PI *2 ;
+      return new Particle(x, y, angle);
+    }
+
+    function resetParticles() {
+      particles = [];
+      for (let i = 0; i < NUM_PARTICLES; i++) {
+        particles.push(createParticle());
+      }
+    }
+
+    resetParticles();
+
+    function animate() {
+      if (INVERT_COLORS) {
+        ctx.fillStyle = 'black';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      } else {
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+
+      particles.forEach(particle => {
+        particle.update(particles);
+        particle.draw();
+      });
+
+      requestAnimationFrame(animate);
+    }
+
+    animate();
+  </script>
+</body>
+</html>
+
+  

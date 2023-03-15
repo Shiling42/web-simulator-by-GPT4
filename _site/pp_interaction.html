@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Interactive Particle Simulation</title>
+	<style>
+		body {
+			background-color: #111;
+			margin: 0;
+			padding: 0;
+		}
+		
+		canvas {
+			display: block;
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			z-index: -1;
+		}
+		
+		.slider {
+			width: 20%;
+			margin: 20px 0;
+		}
+		
+		.slider label {
+			color: white;
+			display: inline-block;
+			margin-bottom: 10px;
+		}
+		
+		.slider input {
+			width: 100%;
+			margin-bottom: 20px;
+		}
+		
+		.checkbox {
+			color: white;
+			margin: 20px 0;
+		}
+	</style>
+</head>
+<body>
+	<div class="slider">
+		<label for="particle-count-slider">Particle Count</label>
+		<input type="range" id="particle-count-slider" min="1" max="10000" step="1" value="500" />
+	</div>
+	<div class="slider">
+		<label for="force-slider">Force Radius</label>
+		<input type="range" id="force-slider" min="1" max="500" step="1" value="100" />
+	</div>
+	<div class="slider">
+		<label for="strength-slider">Force Strength</label>
+		<input type="range" id="strength-slider" min="1" max="300" step="1" value="50" />
+	</div>
+	<div class="checkbox">
+		<input type="checkbox" id="trail-checkbox" unchecked />
+		<label for="trail-checkbox">Show Particle Trail</label>
+	</div>
+	<canvas id="canvas"></canvas>
+	<script>
+		var canvas = document.getElementById("canvas");
+		var ctx = canvas.getContext("2d");
+		canvas.width = window.innerWidth;
+		canvas.height = window.innerHeight;
+		
+		var particles = [];
+		var particleCount = document.getElementById("particle-count-slider").value;
+		var forceRadius = document.getElementById("force-slider").value;
+		var forceStrength = document.getElementById("strength-slider").value;
+		var showTrail = document.getElementById("trail-checkbox").checked;
+		var mouseX = 0;
+		var mouseY = 0;
+		
+		function Particle(x, y) {
+			this.x = x;
+			this.y = y;
+			this.size = Math.random() * 3 + 1;
+			this.speedX = Math.random() * 3 - 1.5;
+			this.speedY = Math.random() * 3 - 1.5;
+			this.trail = [];
+		}
+		
+		Particle.prototype.move = function() {
+			this.x += this.speedX;
+			this.y += this.speedY;
+			if (this.x > canvas.width || this.x < 0) {
+				this.speedX = -this.speedX;
+			}
+			if (this.y > canvas.height || this.y < 0) {
+				this.speedY = -this.speedY;
+			}
+			if (showTrail) {
+				this.trail.push({ x: this.x, y: this.y, opacity: 1 });
+			}
+			if (this.trail.length > 10) {
+				this.trail.shift();
+			}
+		}
+		
+		Particle.prototype.draw = function() {
+			if (showTrail) {
+				for (var i = 0; i < this.trail.length; i++) {
+					var point = this.trail[i];
+					ctx.fillStyle = "rgba(255, 255, 255, " + point.opacity + ")";
+					ctx.beginPath();
+					ctx.arc(point.x, point.y, this.size * 0.5, 0, Math.PI * 2);
+					ctx.closePath();
+					ctx.fill();
+					point.opacity -= 0.1;
+					if (point.opacity < 0) {
+						this.trail.splice(i, 1);
+						i--;
+					}
+				}
+			}
+			ctx.fillStyle = "white";
+			ctx.beginPath();
+			ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+			ctx.closePath();
+			ctx.fill();
+		}
+		
+		function addParticles() {
+			for (var i = 0; i < particleCount; i++) {
+				particles.push(new Particle(Math.random() * canvas.width, Math.random() * canvas.height));
+			}
+		}
+		
+		function removeParticles() {
+			particles = [];
+		}
+		
+		function updateParticles() {
+			particleCount = document.getElementById("particle-count-slider").value;
+			forceRadius = document.getElementById("force-slider").value;
+			forceStrength = document.getElementById("strength-slider").value;
+			showTrail = document.getElementById("trail-checkbox").checked;
+			if (particles.length < particleCount) {
+				addParticles();
+			} else if (particles.length > particleCount) {
+				removeParticles();
+			}
+		}
+		
+		canvas.addEventListener("mousemove", function(event) {
+			mouseX = event.clientX;
+			mouseY = event.clientY;
+		});
+		
+		canvas.addEventListener("touchmove", function(event) {
+			event.preventDefault();
+			mouseX = event.touches[0].clientX;
+			mouseY = event.touches[0].clientY;
+		});
+		
+		function render() {
+			ctx.clearRect(0, 0, canvas.width, canvas.height);
+			for (var i = 0; i < particles.length; i++) {
+				var particle = particles[i];
+				var distance = Math.sqrt(Math.pow(mouseX - particle.x, 2) + Math.pow(mouseY - particle.y, 2));
+				if (distance < forceRadius) {
+					var forceDirectionX = (particle.x - mouseX) / distance;
+					var forceDirectionY = (particle.y - mouseY) / distance;
+					var force = (forceRadius - distance) / forceRadius;
+					if (force < 0) {
+						force = 0;
+					}
+					particle.speedX += forceDirectionX * force * forceStrength * 0.01;
+					particle.speedY += forceDirectionY * force * forceStrength * 0.01;
+				}
+				particle.move();
+				particle.draw();
+			}
+			requestAnimationFrame(render);
+		}
+		
+		updateParticles();
+		render();
+		
+		document.getElementById("particle-count-slider").addEventListener("input", updateParticles);
+		document.getElementById("force-slider").addEventListener("input", updateParticles);
+		document.getElementById("strength-slider").addEventListener("input", updateParticles);
+		document.getElementById("trail-checkbox").addEventListener("change", updateParticles);
+	</script>
+</body>
+</html>

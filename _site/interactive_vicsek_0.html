@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Viscek Model Simulation</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+    }
+
+    #simulationCanvas {
+      display: block;
+      position: absolute;
+    }
+
+    #controlCenter {
+      position: absolute;
+      left: 10px;
+      top: 10px;
+      padding: 10px;
+      background-color: rgba(255, 255, 255, 0.7);
+      border-radius: 5px;
+    }
+
+    .sliderContainer {
+      display: flex;
+      align-items: center;
+    }
+
+    .slider {
+      margin-left: 5px;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="simulationCanvas"></canvas>
+  <div id="controlCenter">
+    <div class="sliderContainer">
+      <label>Agents: <span id="numAgentsValue">100</span></label>
+      <input type="range" min="1" max="500" value="100" class="slider" id="numAgents">
+    </div>
+    <div class="sliderContainer">
+      <label>Speed: <span id="speedValue">2</span></label>
+      <input type="range" min="1" max="10" value="2" class="slider" id="speed">
+    </div>
+    <div class="sliderContainer">
+      <label>Radius: <span id="radiusValue">10</span></label>
+      <input type="range" min="1" max="50" value="10" class="slider" id="radius">
+    </div>
+    <div class="sliderContainer">
+      <label>Noise: <span id="noiseValue">0.1</span></label>
+      <input type="range" min="0" max="1" step="0.01" value="0.1" class="slider" id="noise">
+    </div>
+  </div>
+  <script>
+    const canvas = document.getElementById('simulationCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const numAgentsSlider = document.getElementById('numAgents');
+    const numAgentsValue = document.getElementById('numAgentsValue');
+    const speedSlider = document.getElementById('speed');
+    const speedValue = document.getElementById('speedValue');
+    const radiusSlider = document.getElementById('radius');
+    const radiusValue = document.getElementById('radiusValue');
+    const noiseSlider = document.getElementById('noise');
+    const noiseValue = document.getElementById('noiseValue');
+
+    let NUM_AGENTS = parseInt(numAgentsSlider.value);
+    let SPEED = parseFloat(speedSlider.value);
+    let RADIUS = parseFloat(radiusSlider.value);
+    let NOISE = parseFloat(noiseSlider.value);
+
+    numAgentsSlider.oninput = function() {
+      NUM_AGENTS = parseInt(this.value);
+      numAgentsValue.innerHTML = this.value;
+      resetAgents();
+    }
+
+    speedSlider.oninput = function() {
+      SPEED = parseFloat(this.value);
+      speedValue.innerHTML = this.value;
+    }
+
+    radiusSlider.oninput = function() {
+      RADIUS = parseFloat(this.value);
+      radiusValue.innerHTML = this.value;
+    }
+
+    noiseSlider.oninput = function() {
+      NOISE = parseFloat(this.value);
+      noiseValue.innerHTML = this.value;
+    }
+
+    class Agent {
+      constructor(x, y, angle) {
+        this.x = x;
+        this.y = y;
+        this.angle = angle;
+      }
+
+      update(agents) {
+        let avgAngle = 0;
+        let count = 0;
+
+        agents.forEach(agent => {
+          const dx = this.x - agent.x;
+          const dy = this.y - agent.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+
+          if (distance < RADIUS) {
+            avgAngle += agent.angle;
+            count++;
+          }
+        });
+
+        if (count > 0) {
+          avgAngle /= count;
+          this.angle = avgAngle + (Math.random() - 0.5) * NOISE;
+        }
+
+        this.x += SPEED * Math.cos(this.angle);
+        this.y += SPEED * Math.sin(this.angle);
+
+        if (this.x < 0) this.x += canvas.width;
+        if (this.x > canvas.width) this.x -= canvas.width;
+        if (this.y < 0) this.y += canvas.height;
+        if (this.y > canvas.height) this.y -= canvas.height;
+      }
+
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, 2, 0, Math.PI * 2);
+        ctx.fillStyle = 'black';
+        ctx.fill();
+      }
+    }
+
+    let agents = [];
+
+    function createAgent() {
+      const x = Math.random() * canvas.width;
+      const y = Math.random() * canvas.height;
+      const angle = Math.random() * Math.PI * 2;
+      return new Agent(x, y, angle);
+    }
+
+    function resetAgents() {
+      agents = [];
+      for (let i = 0; i < NUM_AGENTS; i++) {
+        agents.push(createAgent());
+      }
+    }
+
+    resetAgents();
+
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      agents.forEach(agent => {
+        agent.update(agents);
+        agent.draw();
+      });
+
+      requestAnimationFrame(animate);
+    }
+
+    animate();
+  </script>
+</body>
+</html>
