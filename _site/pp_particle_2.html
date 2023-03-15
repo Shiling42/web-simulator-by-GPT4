@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Particle System</title>
+    <style>
+        canvas {
+            display: block;
+            margin: 0 auto;
+            background-color: #f0f0f0;
+        }
+        .slider-container {
+            position: absolute;
+            left: 10px;
+            top: 10px;
+            z-index: 2;
+        }
+    </style>
+</head>
+<body>
+    <div class="slider-container">
+        <label for="particleSlider">Particles: </label>
+        <input type="range" min="1" max="1000" value="50" class="slider" id="particleSlider">
+        <br>
+        <label for="repulsionSlider">Repulsion: </label>
+        <input type="range" min="0" max="1000" value="5" class="slider" id="repulsionSlider">
+        <br>
+        <label for="temperatureSlider">Temperature: </label>
+        <input type="range" min="0" max="1000" value="10" class="slider" id="temperatureSlider">
+        <br>
+        <label for="attractionSlider">Mouse Attraction: </label>
+        <input type="range" min="0" max="100" value="10" class="slider" id="attractionSlider">
+        <br>
+        <label for="dampingSlider">Damping: </label>
+        <input type="range" min="0" max="10" value="1" class="slider" id="dampingSlider">
+    </div>
+    </div>
+    <canvas id="particleCanvas"></canvas>
+    <script>
+
+class Particle {
+    constructor(x, y, radius, temperature, damping) {
+        this.x = x;
+        this.y = y;
+        this.radius = radius;
+        this.vx = Math.random() * 2 - 1;
+        this.vy = Math.random() * 2 - 1;
+        this.temperature = temperature;
+        this.damping = damping;
+    }
+
+    update(temperature, damping) {
+        this.x += this.vx;
+        this.y += this.vy;
+
+        if (this.x < this.radius || this.x + this.radius > canvas.width) {
+            this.vx *= -1;
+        }
+
+        if (this.y < this.radius || this.y + this.radius > canvas.height) {
+            this.vy *= -1;
+        }
+
+        this.vx *= damping;
+        this.vy *= damping;
+
+        this.vx += (Math.random() - 0.5) * temperature;
+        this.vy += (Math.random() - 0.5) * temperature;
+    }
+
+    draw(ctx) {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = "#2e2e2e";
+        ctx.fill();
+        ctx.closePath();
+    }
+
+    attract(targetX, targetY, force) {
+        const dx = targetX - this.x;
+        const dy = targetY - this.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        const directionX = dx / distance;
+        const directionY = dy / distance;
+
+        this.vx += directionX * force;
+        this.vy += directionY * force;
+    }
+
+    repel(other, force) {
+        const dx = this.x - other.x;
+        const dy = this.y - other.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance < this.radius + other.radius) {
+            const directionX = dx / distance;
+            const directionY = dy / distance;
+
+            this.vx += directionX * force;
+            this.vy += directionY * force;
+        }
+    }
+}
+
+const canvas = document.getElementById("particleCanvas");
+const ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+const particles = [];
+const particleSlider = document.getElementById("particleSlider");
+let mouseX = 0;
+let mouseY = 0;
+
+let repulsionForce = 0.05;
+let temperature = 0.05;
+let attractionForce = 0.1;
+let damping = 0.99;
+
+const repulsionSlider = document.getElementById("repulsionSlider");
+const temperatureSlider = document.getElementById("temperatureSlider");
+const attractionSlider = document.getElementById("attractionSlider");
+const dampingSlider = document.getElementById("dampingSlider");
+
+repulsionSlider.addEventListener("input", () => {
+    repulsionForce = repulsionSlider.value / 1000;
+});
+
+temperatureSlider.addEventListener("input", () => {
+    temperature = temperatureSlider.value / 1000;
+});
+
+attractionSlider.addEventListener("input", () => {
+    attractionForce = attractionSlider.value / 1000;
+});
+
+dampingSlider.addEventListener("input", () => {
+    damping = 1 - dampingSlider.value / 100;
+});
+
+function updateCanvasSize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+
+function createParticles(numParticles) {
+    particles.length = 0;
+
+    for (let i = 0; i < numParticles; i++) {
+        const x = Math.random() * canvas.width;
+        const y = Math.random() * canvas.height;
+        const radius = Math.random() * 5 + 2;
+        particles.push(new Particle(x, y, radius, temperature, damping));
+    }
+}
+
+function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    particles.forEach((particle, index) => {
+        for (let i = 0; i < particles.length; i++) {
+            if (index !== i) {
+                particle.repel(particles[i], repulsionForce);
+            }
+        }
+
+        particle.attract(mouseX, mouseY, attractionForce);
+        particle.update(temperature, damping);
+        particle.draw(ctx);
+    });
+
+    requestAnimationFrame(animate);
+}
+
+particleSlider.addEventListener("input", () => {
+    createParticles(particleSlider.value);
+});
+
+canvas.addEventListener("mousemove", (event) => {
+    mouseX = event.clientX;
+    mouseY = event.clientY;
+});
+
+window.addEventListener("resize", updateCanvasSize);
+
+createParticles(particleSlider.value);
+animate();
+
+ 
+    </script>
+</body>
+</html>

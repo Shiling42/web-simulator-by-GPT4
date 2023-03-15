@@ -179,9 +179,12 @@
         if (count > 0) {
           const avgAngle = Math.atan2(sumY / count, sumX / count);
           this.angle += ALIGNMENT_FORCE * (avgAngle - this.angle);
+        }else {
+          const noise = (Math.random() - 0.5) * NOISE;
+          this.angle = (this.angle + noise + 2 * Math.PI) % (2 * Math.PI);
         }
 
-        this.angle += (Math.random() - 0.5) * NOISE * 2;
+        this.angle += (Math.random() - 0.5) * NOISE ;
 
         this.x += SPEED * Math.cos(this.angle);
         this.y += SPEED * Math.sin(this.angle);
