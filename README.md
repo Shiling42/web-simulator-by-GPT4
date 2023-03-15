@@ -28,7 +28,9 @@ We welcome your contribution to this project! If you have any suggestions or wan
 This project is licensed under the [MIT License](./LICENSE).
 
 
+----
 
+<br><br><br><br><br><br>
 <a name="section1"></a>
 # 由 GPT-4 生成的在线可交互物理系统模拟
 [English Version](./README.md)
