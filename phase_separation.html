@@ -43,7 +43,7 @@
     }
     #container {
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
       align-items: center;
     }
     canvas {
@@ -51,7 +51,7 @@
     }
     #controls {
       display: flex;
-      flex-direction: column;
+      flex-wrap: wrap;
       gap: 1rem;
       margin-top: 1rem;
     }
@@ -113,7 +113,7 @@
     </div>
 
     <p id="introduction-en" class="introduction expandable" style="display: block;">
-      This is a simple phase separation model, where particles with different colors attract each other, while particles with the same color repel each other. <span>Read more...</span>
+      This is a simple phase separation model, where particles with different colors repel each other, while particles with the same color attract each other. <span>Read more...</span>
     </p>
     <p id="introduction-details-en" class="introduction" style="display: none;">
       In this phase separation model, the particles have two fundamental properties: color and interaction strength. The particles interact with each other according to the following potential energy function:
@@ -131,7 +131,7 @@
       Based on these equations, the simulation evolves the particle system in time and demonstrates the emergence of phase separation behavior.
     </p>
     <p id="introduction-zh" class="introduction expandable" style="display: none;">
-      这是一个简单的相分离模型，其中不同颜色的粒子互相吸引，而相同颜色的粒子互相排斥。<span>阅读更多...</span>
+      这是一个简单的相分离模型，其中不同颜色的粒子互相排斥，而相同颜色的粒子互相吸引。<span>阅读更多...</span>
     </p>
     <p id="introduction-details-zh" class="introduction" style="display: none;">
 
@@ -162,7 +162,7 @@
       </tr>
       <tr>
         <td>Particle count:</td>
-        <td><input type="range" id="particleCountSlider" min="100" max="2000" step="100" value="1000"></td>
+        <td><input type="range" id="particleCountSlider" min="100" max="4000" step="100" value="2000"></td>
       </tr>
       <tr>
         <td>Attraction force:</td>
@@ -182,7 +182,7 @@
       </tr>
       <tr>
         <td>Attraction distance:</td>
-        <td><input type="range" id="attractionDistanceSlider" min="0" max="200" step="1" value="50"></td>
+        <td><input type="range" id="attractionDistanceSlider" min="0" max="200" step="1" value="10"></td>
       </tr>
       <tr>
         <td>Repulsion distance:</td>
@@ -325,8 +325,11 @@ languageSwitch.addEventListener('click', function() {
 
       draw() {
         ctx.beginPath();
-        ctx.arc(this.x, this.y, 2, 0, Math.PI * 2);
+        ctx.arc(this.x, this.y, 4, 0, Math.PI * 2);
+        ctx.globalAlpha = 0.5; 
         ctx.fillStyle = this.color;
+        ctx.shadowColor = this.color;
+        ctx.shadowBlur = 3 ;
         ctx.fill();
       }
     }
