@@ -152,52 +152,64 @@
     </p>
     
 
-  <div id="container">
-    <canvas id="phaseCanvas" width="400" height="400"></canvas>
-    <div id="controls">
-    <table>
-      <tr>
-        <td>Simulation speed:</td>
-        <td><input type="range" id="simulationSpeedSlider" min="0" max="100" step="1" value="50"></td>
-      </tr>
-      <tr>
-        <td>Particle count:</td>
-        <td><input type="range" id="particleCountSlider" min="100" max="4000" step="100" value="2000"></td>
-      </tr>
-      <tr>
-        <td>Attraction force:</td>
-        <td><input type="range" id="attractionForceSlider" min="0" max="0.2" step="0.01" value="0.05"></td>
-      </tr>
-      <tr>
-        <td>Repulsion force:</td>
-        <td><input type="range" id="repulsionForceSlider" min="0" max="0.5" step="0.01" value="0.1"></td>
-      </tr>
-      <tr>
-        <td>Same color repulsion force:</td>
-        <td><input type="range" id="sameColorRepulsionForceSlider" min="0" max="0.1" step="0.01" value="0.03"></td>
-      </tr>
-      <tr>
-        <td>Temperature:</td>
-        <td><input type="range" id="temperatureSlider" min="0" max="5" step="0.1" value="1"></td>
-      </tr>
-      <tr>
-        <td>Attraction distance:</td>
-        <td><input type="range" id="attractionDistanceSlider" min="0" max="200" step="1" value="10"></td>
-      </tr>
-      <tr>
-        <td>Repulsion distance:</td>
-        <td><input type="range" id="repulsionDistanceSlider" min="0" max="200" step="1" value="25"></td>
-      </tr>
-      <tr>
-        <td>Same color repulsion distance:</td>
-        <td><input type="range" id="sameColorRepulsionDistanceSlider" min="0" max="200" step="1" value="50"></td>
-      </tr>
-      <tr>
-        <td>Drag:</td>
-        <td><input type="range" id="dragSlider" min="0" max="1" step="0.01" value="0.2"></td>
-      </tr>
-    </table>
-  </div>
+    <div id="container">
+      <canvas id="phaseCanvas" width="400" height="400"></canvas>
+      <div id="controls">
+        <table>
+          <tr>
+            <td>Simulation speed:</td>
+            <td><input type="range" id="simulationSpeedSlider" min="0" max="100" step="1" value="50"></td>
+            <td><span id="simulationSpeedValue">50</span></td>
+          </tr>
+          <tr>
+            <td>Particle count:</td>
+            <td><input type="range" id="particleCountSlider" min="100" max="4000" step="100" value="2000"></td>
+            <td><span id="particleCountValue">2000</span></td>
+          </tr>
+          <tr>
+            <td>Attraction force:</td>
+            <td><input type="range" id="attractionForceSlider" min="0" max="0.2" step="0.01" value="0.05"></td>
+            <td><span id="attractionForceValue">0.05</span></td>
+          </tr>
+          <tr>
+            <td>Repulsion force:</td>
+            <td><input type="range" id="repulsionForceSlider" min="0" max="0.5" step="0.01" value="0.1"></td>
+            <td><span id="repulsionForceValue">0.1</span></td>
+          </tr>
+          <tr>
+            <td>Same color repulsion force:</td>
+            <td><input type="range" id="sameColorRepulsionForceSlider" min="0" max="1" step="0.01" value="0.03"></td>
+            <td><span id="sameColorRepulsionForceValue">0.03</span></td>
+          </tr>
+          <tr>
+            <td>Temperature:</td>
+            <td><input type="range" id="temperatureSlider" min="0" max="5" step="0.1" value="1"></td>
+            <td><span id="temperatureValue">1</span></td>
+          </tr>
+          <tr>
+            <td>Attraction distance:</td>
+            <td><input type="range" id="attractionDistanceSlider" min="0" max="200" step="1" value="10"></td>
+            <td><span id="attractionDistanceValue">10</span></td>
+          </tr>
+          <tr>
+            <td>Repulsion distance:</td>
+            <td><input type="range" id="repulsionDistanceSlider" min="0" max="200" step="1" value="25"></td>
+            <td><span id="repulsionDistanceValue">25</span></td>
+          </tr>
+          <tr>
+            <td>Same color repulsion distance:</td>
+            <td><input type="range" id="sameColorRepulsionDistanceSlider" min="0" max="200" step="1" value="50"></td>
+            <td><span id="sameColorRepulsionDistanceValue">50</span></td>
+          </tr>
+          <tr>
+            <td>Drag:</td>
+            <td><input type="range" id="dragSlider" min="0" max="1" step="0.01"
+              value="0.2"></td>
+              <td><span id="dragValue">0.2</span></td>
+            </tr>
+          </table>
+        </div>
+          
 </div>
 
 <script>
@@ -265,6 +277,38 @@ languageSwitch.addEventListener('click', function() {
     const simulationSpeedSlider = document.getElementById('simulationSpeedSlider');
     const reproductionRateSlider = document.getElementById('reproductionRateSlider');
 
+    // 更新每个参数的值
+  simulationSpeedSlider.addEventListener("input", () => {
+    simulationSpeedValue.innerHTML = simulationSpeedSlider.value;
+  });
+  particleCountSlider.addEventListener("input", () => {
+    particleCountValue.innerHTML = particleCountSlider.value;
+  });
+  attractionForceSlider.addEventListener("input", () => {
+    attractionForceValue.innerHTML = attractionForceSlider.value;
+  });
+  repulsionForceSlider.addEventListener("input", () => {
+    repulsionForceValue.innerHTML = repulsionForceSlider.value;
+  });
+  sameColorRepulsionForceSlider.addEventListener("input", () => {
+    sameColorRepulsionForceValue.innerHTML = sameColorRepulsionForceSlider.value;
+  });
+  temperatureSlider.addEventListener("input", () => {
+    temperatureValue.innerHTML = temperatureSlider.value;
+  });
+  attractionDistanceSlider.addEventListener("input", () => {
+    attractionDistanceValue.innerHTML = attractionDistanceSlider.value;
+  });
+  repulsionDistanceSlider.addEventListener("input", () => {
+    repulsionDistanceValue.innerHTML = repulsionDistanceSlider.value;
+  });
+  sameColorRepulsionDistanceSlider.addEventListener("input", () => {
+    sameColorRepulsionDistanceValue.innerHTML = sameColorRepulsionDistanceSlider.value;
+  });
+  dragSlider.addEventListener("input", () => {
+    dragValue.innerHTML = dragSlider.value;
+  });
+
     let simulationSpeed = parseFloat(simulationSpeedSlider.value);
     let attractionForce = parseFloat(attractionForceSlider.value);
     let repulsionForce = parseFloat(repulsionForceSlider.value);
@@ -325,11 +369,11 @@ languageSwitch.addEventListener('click', function() {
 
       draw() {
         ctx.beginPath();
-        ctx.arc(this.x, this.y, 3.5, 0, Math.PI * 2);
+        ctx.arc(this.x, this.y, 3, 0, Math.PI * 2);
         ctx.globalAlpha = 1; 
         ctx.fillStyle = this.color;
         ctx.shadowColor = this.color;
-        ctx.shadowBlur = 3;
+        ctx.shadowBlur = 0;
         ctx.fill();
       }
     }
