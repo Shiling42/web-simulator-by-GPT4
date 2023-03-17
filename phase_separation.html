@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script>
+    MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']]
+      },
+      svg: {
+        fontCache: 'global'
+      }
+    };
+  </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simple Phase Separation Model</title>
+  <style>
+    .introduction {
+  max-width: 500px;
+  text-align: left;
+  justify-content: space-between;
+}
+.expandable {
+  cursor: pointer;
+  user-select: none;
+}
+    body {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 1rem;
+      font-family: Arial, sans-serif;
+    }
+    h1 {
+      margin-bottom: 0.5rem;
+      font-size: 1.5rem;
+    }
+    #container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    canvas {
+      border: 1px solid black;
+    }
+    #controls {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    table {
+      border-collapse: collapse;
+      margin-bottom: 1rem;
+    }
+    td {
+      padding: 0.5rem;
+    }
+  /* 移动设备样式 */
+  @media (max-width: 767px) {
+    #container {
+      flex-direction: column;
+    }
+    #controls {
+      margin-top: 1rem;
+      margin-left: 0;
+    }
+    h1 {
+  margin-bottom: 0.5rem;
+  font-size: 1.5rem;
+}
+    #languageSwitch {
+      align-self: flex-end;
+    }
+  }
+  #languageSwitch {
+  background-color: white;
+  padding: 0.5rem;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 1rem;
+}
+#header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  max-width: 500px;
+  justify-content: center;
+  margin-bottom: 1rem;
+  gap: 1rem; /* 添加这行 */
+}
+    #introduction {
+    max-width: 200px; /* 修改这个值 */
+    text-align: center;
+  }
+  </style>
+  
+
+  
+  </head>
+  <body>
+    <div id="header">
+      <h1 id="title-en" style="display: inline;">Simple Phase Separation Model</h1>
+      <h1 id="title-zh" style="display: none;">简单的相分离模型</h1>
+      <button id="languageSwitch">中文</button>
+    </div>
+
+    <p id="introduction-en" class="introduction expandable" style="display: block;">
+      This is a simple phase separation model, where particles with different colors attract each other, while particles with the same color repel each other. <span>Read more...</span>
+    </p>
+    <p id="introduction-details-en" class="introduction" style="display: none;">
+      In this phase separation model, the particles have two fundamental properties: color and interaction strength. The particles interact with each other according to the following potential energy function:
+
+      $$V(r) = \begin{cases} A (1 - \frac{r}{R})^2 & r \leq R \\ 0 & r > R \end{cases}$$
+    
+      Where $V(r)$ represents the interaction potential energy between two particles, $r$ is the distance between them, $A$ is the interaction strength, and $R$ is the interaction range.
+    
+      The model also incorporates a simple equation of motion for the particles, given by:
+    
+      $$\frac{d\mathbf{r}_i}{dt} = -\frac{1}{\zeta} \sum_{j \neq i} \nabla V_{ij}$$
+    
+      Here, $\mathbf{r}_i$ is the position of particle $i$, $\zeta$ is the drag coefficient, and $\nabla V_{ij}$ is the gradient of the potential energy with respect to the positions of particles $i$ and $j$.
+    
+      Based on these equations, the simulation evolves the particle system in time and demonstrates the emergence of phase separation behavior.
+    </p>
+    <p id="introduction-zh" class="introduction expandable" style="display: none;">
+      这是一个简单的相分离模型，其中不同颜色的粒子互相吸引，而相同颜色的粒子互相排斥。<span>阅读更多...</span>
+    </p>
+    <p id="introduction-details-zh" class="introduction" style="display: none;">
+
+      在这个相分离模型中，粒子有两个基本属性：颜色和相互作用强度。粒子之间根据以下势能函数相互作用：
+
+      $$V(r) = \begin{cases} A (1 - \frac{r}{R})^2 & r \leq R \\ 0 & r > R \end{cases}$$
+    
+      其中 $V(r)$ 代表两个粒子之间的相互作用势能，$r$ 是它们之间的距离，$A$ 是相互作用强度，$R$ 是相互作用范围。
+    
+      该模型还引入了粒子的简单运动方程，表示为：
+    
+      $$\frac{d\mathbf{r}_i}{dt} = -\frac{1}{\zeta} \sum_{j \neq i} \nabla V_{ij}$$
+    
+      这里，$\mathbf{r}_i$ 是粒子 $i$ 的位置，$\zeta$ 是阻力系数，$\nabla V_{ij}$ 是关于粒子 $i$
+      和 $j$ 的位置的势能梯度。
+
+      基于这些方程，模拟在时间内演化粒子系统并展示相分离行为的出现。
+    </p>
+    
+
+  <div id="container">
+    <canvas id="phaseCanvas" width="400" height="400"></canvas>
+    <div id="controls">
+    <table>
+      <tr>
+        <td>Simulation speed:</td>
+        <td><input type="range" id="simulationSpeedSlider" min="0" max="100" step="1" value="50"></td>
+      </tr>
+      <tr>
+        <td>Particle count:</td>
+        <td><input type="range" id="particleCountSlider" min="100" max="2000" step="100" value="1000"></td>
+      </tr>
+      <tr>
+        <td>Attraction force:</td>
+        <td><input type="range" id="attractionForceSlider" min="0" max="0.2" step="0.01" value="0.05"></td>
+      </tr>
+      <tr>
+        <td>Repulsion force:</td>
+        <td><input type="range" id="repulsionForceSlider" min="0" max="0.5" step="0.01" value="0.1"></td>
+      </tr>
+      <tr>
+        <td>Same color repulsion force:</td>
+        <td><input type="range" id="sameColorRepulsionForceSlider" min="0" max="0.1" step="0.01" value="0.03"></td>
+      </tr>
+      <tr>
+        <td>Temperature:</td>
+        <td><input type="range" id="temperatureSlider" min="0" max="5" step="0.1" value="1"></td>
+      </tr>
+      <tr>
+        <td>Attraction distance:</td>
+        <td><input type="range" id="attractionDistanceSlider" min="0" max="200" step="1" value="50"></td>
+      </tr>
+      <tr>
+        <td>Repulsion distance:</td>
+        <td><input type="range" id="repulsionDistanceSlider" min="0" max="200" step="1" value="25"></td>
+      </tr>
+      <tr>
+        <td>Same color repulsion distance:</td>
+        <td><input type="range" id="sameColorRepulsionDistanceSlider" min="0" max="200" step="1" value="50"></td>
+      </tr>
+      <tr>
+        <td>Drag:</td>
+        <td><input type="range" id="dragSlider" min="0" max="1" step="0.01" value="0.2"></td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+<script>
+
+const languageSwitch = document.getElementById('languageSwitch');
+
+const introductionExpandEn = document.querySelector('#introduction-en span');
+const introductionDetailsEn = document.getElementById('introduction-details-en');
+const introductionExpandZh = document.querySelector('#introduction-zh span');
+const introductionDetailsZh = document.getElementById('introduction-details-zh');
+
+introductionExpandEn.addEventListener('click', function () {
+  introductionDetailsEn.style.display =
+    introductionDetailsEn.style.display === 'none' ? 'block' : 'none';
+});
+
+introductionExpandZh.addEventListener('click', function () {
+  introductionDetailsZh.style.display =
+    introductionDetailsZh.style.display === 'none' ? 'block' : 'none';
+});
+
+
+const introductionEn = document.getElementById('introduction-en');
+const introductionZh = document.getElementById('introduction-zh');
+const titleEn = document.getElementById('title-en');
+const titleZh = document.getElementById('title-zh');
+let language = 'en';
+
+languageSwitch.addEventListener('click', function() {
+  if (language === 'zh') {
+    language = 'en';
+    introductionZh.style.display = 'none';
+    introductionEn.style.display = 'block';
+    titleZh.style.display = 'none';
+    titleEn.style.display = 'inline';
+    languageSwitch.textContent = '中文';
+  } else {
+    language = 'zh';
+    introductionEn.style.display = 'none';
+    introductionZh.style.display = 'block';
+    titleEn.style.display = 'none';
+    titleZh.style.display = 'inline';
+    languageSwitch.textContent = 'English';
+  }
+});
+
+
+
+    const canvas = document.getElementById('phaseCanvas');
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width;
+    const height = canvas.height;
+    let particleCount = 1000;
+    const particles = [];
+
+    const particleCountSlider = document.getElementById('particleCountSlider');
+    const attractionForceSlider = document.getElementById('attractionForceSlider');
+    const repulsionForceSlider = document.getElementById('repulsionForceSlider');
+    const sameColorRepulsionForceSlider = document.getElementById('sameColorRepulsionForceSlider');
+    const temperatureSlider = document.getElementById('temperatureSlider');
+    const attractionDistanceSlider = document.getElementById('attractionDistanceSlider');
+    const repulsionDistanceSlider = document.getElementById('repulsionDistanceSlider');
+    const sameColorRepulsionDistanceSlider = document.getElementById('sameColorRepulsionDistanceSlider');
+    const dragSlider = document.getElementById('dragSlider');
+    const simulationSpeedSlider = document.getElementById('simulationSpeedSlider');
+    const reproductionRateSlider = document.getElementById('reproductionRateSlider');
+
+    let simulationSpeed = parseFloat(simulationSpeedSlider.value);
+    let attractionForce = parseFloat(attractionForceSlider.value);
+    let repulsionForce = parseFloat(repulsionForceSlider.value);
+    let sameColorRepulsionForce = parseFloat(sameColorRepulsionForceSlider.value);
+    let temperature = parseFloat(temperatureSlider.value);
+    let attractionDistance = parseInt(attractionDistanceSlider.value);
+    let repulsionDistance = parseInt(repulsionDistanceSlider.value);
+    let sameColorRepulsionDistance = parseInt(sameColorRepulsionDistanceSlider.value);
+    let drag = parseFloat(dragSlider.value);
+    simulationSpeedSlider.addEventListener('input', function() {
+      simulationSpeed = parseFloat(simulationSpeedSlider.value);
+    });
+    particleCountSlider.addEventListener('input', function() {
+      particleCount = parseInt(particleCountSlider.value);
+      createParticles();
+    });
+
+    attractionForceSlider.addEventListener('input', function() {
+      attractionForce = parseFloat(attractionForceSlider.value);
+    });
+
+    repulsionForceSlider.addEventListener('input', function() {
+      repulsionForce = parseFloat(repulsionForceSlider.value);
+    });
+
+    sameColorRepulsionForceSlider.addEventListener('input', function() {
+      sameColorRepulsionForce = parseFloat(sameColorRepulsionForceSlider.value);
+    });
+
+    temperatureSlider.addEventListener('input', function() {
+      temperature = parseFloat(temperatureSlider.value);
+    });
+
+    attractionDistanceSlider.addEventListener('input', function() {
+    attractionDistance = parseInt(attractionDistanceSlider.value);
+    });
+
+    repulsionDistanceSlider.addEventListener('input', function() {
+    repulsionDistance = parseInt(repulsionDistanceSlider.value);
+    });
+
+    sameColorRepulsionDistanceSlider.addEventListener('input', function() {
+    sameColorRepulsionDistance = parseInt(sameColorRepulsionDistanceSlider.value);
+    });
+
+    dragSlider.addEventListener('input', function() {
+    drag = parseFloat(dragSlider.value);
+    });
+
+    class Particle {
+        constructor(x, y, color) {
+        this.x = x;
+        this.y = y;
+        this.color = color;
+        this.vx = 0;
+        this.vy = 0;
+      }
+
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, 2, 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
+        ctx.fill();
+      }
+    }
+
+    function createParticles() {
+      particles.length = 0;
+      for (let i = 0; i < particleCount; i++) {
+        const x = Math.random() * width;
+        const y = Math.random() * height;
+        const color = i < particleCount / 2 ? 'red' : 'blue';
+        particles.push(new Particle(x, y, color));
+      }
+    }
+
+    function drawParticles() {
+      ctx.clearRect(0, 0, width, height);
+      particles.forEach(particle => particle.draw());
+    }
+
+    function updateParticles() {
+    const attractionDistance = parseInt(attractionDistanceSlider.value);
+    const repulsionDistance = parseInt(repulsionDistanceSlider.value);
+    const sameColorRepulsionDistance = parseInt(sameColorRepulsionDistanceSlider.value);
+    const drag = parseFloat(dragSlider.value);
+
+  particles.forEach((particle, i) => {
+    const noiseX = (Math.random() - 0.5) * temperature;
+    const noiseY = (Math.random() - 0.5) * temperature;
+
+    particle.vx += noiseX;
+    particle.vy += noiseY;
+
+    for (let j = i + 1; j < particles.length; j++) {
+      const other = particles[j];
+      const dx = other.x - particle.x;
+      const dy = other.y - particle.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      if (distance < repulsionDistance && particle.color !== other.color) {
+        particle.vx -= repulsionForce * dx / distance;
+        particle.vy -= repulsionForce * dy / distance;
+        other.vx += repulsionForce * dx / distance;
+        other.vy += repulsionForce * dy / distance;
+      } else if (distance < attractionDistance && particle.color === other.color) {
+        if (distance < sameColorRepulsionDistance) {
+          particle.vx -= sameColorRepulsionForce * dx / distance;
+          particle.vy -= sameColorRepulsionForce * dy / distance;
+          other.vx += sameColorRepulsionForce * dx / distance;
+          other.vy += sameColorRepulsionForce * dy / distance;
+        } else {
+          particle.vx += attractionForce * dx / distance;
+          particle.vy += attractionForce * dy / distance;
+          other.vx -= attractionForce * dx / distance;
+          other.vy -= attractionForce * dy / distance;
+        }
+      }
+    }
+
+    // 应用阻力
+    particle.vx *= (1-drag);
+    particle.vy *= (1-drag);
+
+    // 更新粒子位置
+    particle.x += particle.vx;
+    particle.y += particle.vy;
+
+    // 应用周期性边界条件
+    particle.x = (particle.x + width) % width;
+    particle.y = (particle.y + height) % height;
+  });
+}
+
+  function animate() {
+    drawParticles();
+    for (let i = 0; i < simulationSpeed / 10; i++) {
+      updateParticles();
+    }
+    requestAnimationFrame(animate);
+  }
+
+    createParticles();
+    animate();
+  </script>
+</body>
+</html>
+

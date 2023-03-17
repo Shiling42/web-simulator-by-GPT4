@@ -18,6 +18,7 @@ Here are some simulations in the project, click on the link to view the correspo
 ### Mouse Interaction
 1. [Particle Repulsion](./pp_interaction.html)
 2. [Particle Party](./pp_particle_2.html)
+3. [Phase Separation](./phase_separation.html)
 
 ## Contribution and Feedback
 
@@ -46,6 +47,7 @@ This project is licensed under the [MIT License](./LICENSE).
 
 1. [XY模型](./XY_model.html)
 2. [Vicsek鱼群模型](./interactive_vicsek.html)
+3. [相分离](./phase_separation.html)
 
 `*物理的正确性和准确性无法保证，请检查原始代码确认。`
 ### 鼠标互动
