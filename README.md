@@ -13,12 +13,13 @@ Here are some simulations in the project, click on the link to view the correspo
 
 1. [XY Model](./XY_model.html)
 2. [Vicsek Model for Collective Motion](./interactive_vicsek.html)
+3. [Phase Separation](./phase_separation.html)
 
 `*The correctness of the physics is not guaranteed, please check the source code for confirmation.`
 ### Mouse Interaction
 1. [Particle Repulsion](./pp_interaction.html)
 2. [Particle Party](./pp_particle_2.html)
-3. [Phase Separation](./phase_separation.html)
+
 
 ## Contribution and Feedback
 
