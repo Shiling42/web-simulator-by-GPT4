@@ -4,34 +4,41 @@
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/esm/tex-mml-chtml.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
+  
   <meta charset="UTF-8">
   <title>Chiral Symmetry Breaking</title>
   <style>
-    .explanation {
-    width: 60%;
-    margin: 0 auto;
-    display: none;
+    .chinese {
+      max-width: 650px;
+      margin: 5 auto;
+      text-align: center;
+      justify-content: space-between;
+    }
+    .english {
+      max-width: 650px;
+      margin: 5 auto;
+      text-align: center;
+      justify-content: space-between;
     }
 
-
-    .explanation p {
-    text-align: justify;
-    line-height: 1.5;
-    }
     .language-switcher {
     position: fixed;
     top: 20px;
     right: 20px;
     background-color: white;
-    border: 1px solid black;
+    border: 2px solid black;
     padding: 5px 10px;
     cursor: pointer;
     }
+
     body {
     display: flex;
     flex-direction: column;
     align-items: center;
+    font-family: 'Roboto', 'Noto Sans SC', sans-serif;
     }
 
     h1 {
@@ -47,22 +54,31 @@
     }
 
     .controls {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
+      display: flex;
+      flex-direction: row;
+      align-items: top;
+      justify-content: center;
+      gap: 10px;
+      margin: 10px;
     }
-
+    #simulation{
+      border: 3px solid #000; /* 设置边框宽度、样式和颜色 */
+    }
+    .legend {
+      text-align: center;
+      margin: 10px 0;
+    }
   </style>
 </head>
 <body>
   <h1>自发手性破缺化学反应模拟</h1>
-  <div>
+  <div class="legend">
     <span style="color: green">●</span> <label>A粒子</label>
     <span style="color: red">■</span> <label>R粒子</label>
     <span style="color: blue">▲</span> <label>S粒子</label>
   </div>
   <canvas id="simulation" width="600" height="400"></canvas>
+
   <div class="controls">
     <div>
       <label>A+R->2R概率:</label>
@@ -77,6 +93,8 @@
       <input type="range" id="p0" min="0" max="100" value="50" oninput="updateParameters()">
       <span id="p0Value">70</span>%
       <br>
+      </div>
+      <div>
       <label>温度:</label>
       <input type="range" id="temp" min="0" max="100" value="50" oninput="updateParameters()">
       <span id="tempValue">50</span>%
@@ -86,11 +104,11 @@
       <span id="dampingValue">90</span>%
       <br>
       <label>粒子数:</label>
-      <input type="range" id="particleCount" min="10" max="1000" value="100" oninput="updateParameters()">
+      <input type="range" id="particleCount" min="10" max="1000" value="100" oninput="updateParticleCount()">
       <span id="particleCountValue">100</span>
       <br>      
       <label>碰撞半径:</label>
-      <input type="range" id="collisionRadius" min="1" max="30" value="5" oninput="updateParameters()">
+      <input type="range" id="collisionRadius" min="5" max="30" value="5" oninput="updateParameters()">
       <span id="collisionRadiusValue">5</span>
     </div>
   </div>
@@ -99,7 +117,7 @@
     <p class="chinese">
       本模拟系统受到Frank Model的启发，用于展示手性分子自发性对称破缺。这个模型包含三种类型的粒子：A，R和S。R和S是具有手性的粒子，A粒子是手性中心。
     </p>
-    <p class="english" style="display: none;">
+    <p class="english" style="display: none;" >
       This simulation system is inspired by the Frank Model and is used to demonstrate spontaneous symmetry breaking of chiral molecules. The model consists of three types of particles: A, R, and S. R and S are chiral particles, while A particles serve as chiral centers. 
     </p>
   </div>
@@ -109,14 +127,14 @@
   <script>
     const englishTexts = [
     "Spontaneous Chiral Symmetry Breaking",
-    " A particles",
-    " R particles",
-    " S particles",
+    " A particle",
+    " R particle",
+    " S particle",
     "A+R->2R rate:",
     "A+S->2S rate:",
     "S+R->A rate:",
     "Temperature:",
-    "Decay:",
+    "Damping:",
     "Particle count:",
     "Collision radius:",
     "中文",
@@ -197,8 +215,14 @@ function updateParameters() {
     prValue.textContent = prSlider.value;
     psValue.textContent = psSlider.value;
     tempValue.textContent = tempSlider.value;
-    initializeSystem();
+
   }
+
+function updateParticleCount() {
+  const particleCountValue = document.getElementById("particleCountValue");
+  particleCountValue.textContent = particleCountSlider.value;
+  initializeSystem();
+}
 
 function initializeSystem() {
   particles = [];
@@ -287,20 +311,20 @@ function updateParticles() {
 
 function drawParticles() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    const ShadRadius = parseFloat(document.getElementById("collisionRadius").value);
-    const DrawRadius = 6;
+    const ShadRadius = 0;
+    const DrawRadius = parseFloat(document.getElementById("collisionRadius").value);
     particles.forEach((particle) => {
       if (particle.type === "A") {
         ctx.fillStyle = "green";
         ctx.beginPath();
         ctx.arc(particle.x, particle.y, DrawRadius, 0, 2 * Math.PI);
-        ctx.shadowColor = "green";
+        ctx.shadowColor = "black";
         ctx.shadowBlur = ShadRadius;
         ctx.fill();
       } else if (particle.type === "R") {
         ctx.fillStyle = "red";
         ctx.fillRect(particle.x - DrawRadius, particle.y - DrawRadius,DrawRadius*2, DrawRadius*2);
-        ctx.shadowColor = "red";
+        ctx.shadowColor = "black";
         ctx.shadowBlur = ShadRadius;
       } else if (particle.type === "S") {
         ctx.fillStyle = "blue";
@@ -308,7 +332,7 @@ function drawParticles() {
         ctx.moveTo(particle.x, particle.y - DrawRadius);
         ctx.lineTo(particle.x + DrawRadius, particle.y + DrawRadius);
         ctx.lineTo(particle.x - DrawRadius, particle.y + DrawRadius);
-        ctx.shadowColor = "blue";
+        ctx.shadowColor = "black";
         ctx.shadowBlur = ShadRadius;
         ctx.closePath();
         ctx.fill();
@@ -330,7 +354,7 @@ updateAndDraw();
   </script>
 
 </div>
-  <button class="language-switcher" onclick="switchLanguage()">English</button>
+<button class="language-switcher" onclick="switchLanguage()">English</button>
 
 </body>
 </html>
