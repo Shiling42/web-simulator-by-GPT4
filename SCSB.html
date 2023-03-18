@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/esm/tex-mml-chtml.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <meta charset="UTF-8">
+  <title>Chiral Symmetry Breaking</title>
+  <style>
+    .explanation {
+    width: 60%;
+    margin: 0 auto;
+    display: none;
+    }
+
+
+    .explanation p {
+    text-align: justify;
+    line-height: 1.5;
+    }
+    .language-switcher {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: white;
+    border: 1px solid black;
+    padding: 5px 10px;
+    cursor: pointer;
+    }
+    body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    }
+
+    h1 {
+    text-align: center;
+    }
+
+    canvas {
+    margin: 20px 0;
+    }
+
+    p {
+    text-align: center;
+    }
+
+    .controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    }
+
+  </style>
+</head>
+<body>
+  <h1>自发手性破缺化学反应模拟</h1>
+  <div>
+    <span style="color: green">●</span> <label>A粒子</label>
+    <span style="color: red">■</span> <label>R粒子</label>
+    <span style="color: blue">▲</span> <label>S粒子</label>
+  </div>
+  <canvas id="simulation" width="600" height="400"></canvas>
+  <div class="controls">
+    <div>
+      <label>A+R->2R概率:</label>
+      <input type="range" id="pr" min="0" max="100" value="90" oninput="updateParameters()">
+      <span id="prValue">50</span>%
+      <br>
+      <label>A+S->2S概率:</label>
+      <input type="range" id="ps" min="0" max="100" value="90" oninput="updateParameters()">
+      <span id="psValue">50</span>%
+      <br>
+      <label>S+R->2A概率:</label>
+      <input type="range" id="p0" min="0" max="100" value="50" oninput="updateParameters()">
+      <span id="p0Value">70</span>%
+      <br>
+      <label>温度:</label>
+      <input type="range" id="temp" min="0" max="100" value="50" oninput="updateParameters()">
+      <span id="tempValue">50</span>%
+      <br>
+      <label>阻尼:</label>
+      <input type="range" id="damping" min="0" max="100" value="1" oninput="updateParameters()">
+      <span id="dampingValue">90</span>%
+      <br>
+      <label>粒子数:</label>
+      <input type="range" id="particleCount" min="10" max="1000" value="100" oninput="updateParameters()">
+      <span id="particleCountValue">100</span>
+      <br>      
+      <label>碰撞半径:</label>
+      <input type="range" id="collisionRadius" min="1" max="30" value="5" oninput="updateParameters()">
+      <span id="collisionRadiusValue">5</span>
+    </div>
+  </div>
+
+  <div id="description">
+    <p class="chinese">
+      本模拟系统受到Frank Model的启发，用于展示手性分子自发性对称破缺。这个模型包含三种类型的粒子：A，R和S。R和S是具有手性的粒子，A粒子是手性中心。
+    </p>
+    <p class="english" style="display: none;">
+      This simulation system is inspired by the Frank Model and is used to demonstrate spontaneous symmetry breaking of chiral molecules. The model consists of three types of particles: A, R, and S. R and S are chiral particles, while A particles serve as chiral centers. 
+    </p>
+  </div>
+  
+  
+  <div id="simulation">
+  <script>
+    const englishTexts = [
+    "Spontaneous Chiral Symmetry Breaking",
+    " A particles",
+    " R particles",
+    " S particles",
+    "A+R->2R rate:",
+    "A+S->2S rate:",
+    "S+R->A rate:",
+    "Temperature:",
+    "Decay:",
+    "Particle count:",
+    "Collision radius:",
+    "中文",
+    ];
+
+    const chineseTexts = [
+    "自发手性破缺化学反应模拟",
+    " A粒子",
+    " R粒子",
+    " S粒子",
+    "A+R->2R速率：",
+    "A+S->2S速率：",
+    "S+R->A速率：",
+    "温度：",
+    "衰减：",
+    "粒子数：",
+    "碰撞半径：",
+    "English",
+    ];
+
+let isEnglish = false;
+
+function switchLanguage() {
+  const texts = isEnglish ? chineseTexts : englishTexts;
+  document.querySelector("h1").textContent = texts[0];
+  document.querySelectorAll("label")[0].textContent = texts[1];
+  document.querySelectorAll("label")[1].textContent = texts[2];
+  document.querySelectorAll("label")[2].textContent = texts[3];
+  document.querySelectorAll("label")[3].textContent = texts[4];
+  document.querySelectorAll("label")[4].textContent = texts[5];
+  document.querySelectorAll("label")[5].textContent = texts[6];
+  document.querySelectorAll("label")[6].textContent = texts[7];
+  document.querySelectorAll("label")[7].textContent = texts[8];
+  document.querySelectorAll("label")[8].textContent = texts[9];
+  document.querySelectorAll("label")[9].textContent = texts[10];
+  document.querySelector("button").textContent = texts[10];
+  document.querySelector(".language-switcher").textContent = texts[11];
+  document.querySelector(".chinese").style.display = isEnglish ? "block" : "none";
+  document.querySelector(".english").style.display = isEnglish ? "none" : "block";
+  isEnglish = !isEnglish;
+}
+
+
+const canvas = document.getElementById("simulation");
+const ctx = canvas.getContext("2d");
+
+const prSlider = document.getElementById("pr");
+const psSlider = document.getElementById("ps");
+const p0Slider = document.getElementById("p0");
+
+const tempSlider = document.getElementById("temp");
+const particleCountSlider = document.getElementById("particleCount");
+const dampingSlider = document.getElementById("damping");
+
+let particles = [];
+
+class Particle {
+  constructor(x, y, type) {
+    this.x = x;
+    this.y = y;
+    this.type = type;
+    this.vx = 0;
+    this.vy = 0;
+    this.radius = parseFloat(document.getElementById("collisionRadius").value);
+  }
+}
+
+function updateParameters() {
+    const prValue = document.getElementById("prValue");
+    const psValue = document.getElementById("psValue");
+    const tempValue = document.getElementById("tempValue");
+    const p0Value = document.getElementById("p0Value");
+    const dampingValue = document.getElementById("dampingValue");
+    const particleCountValue = document.getElementById("particleCountValue");
+    particleCountValue.textContent = particleCountSlider.value;
+    dampingValue.textContent = dampingSlider.value;
+    p0Value.textContent = p0Slider.value;       
+    prValue.textContent = prSlider.value;
+    psValue.textContent = psSlider.value;
+    tempValue.textContent = tempSlider.value;
+    initializeSystem();
+  }
+
+function initializeSystem() {
+  particles = [];
+  const particleCount = parseInt(particleCountSlider.value);
+  for (let i = 0; i < particleCount; i++) {
+    const x = Math.random() * canvas.width;
+    const y = Math.random() * canvas.height;
+    const type = i % 2 === 0 ? "R" : "S";
+    particles.push(new Particle(x, y, type));
+  }
+}
+
+function updateParticles() {
+    const pr = parseFloat(prSlider.value) / 100;
+    const ps = parseFloat(psSlider.value) / 100;
+    const p0 = parseFloat(p0Slider.value) / 100;
+    const temp = parseFloat(tempSlider.value) / 100;
+    const collisionRadiusValue = document.getElementById("collisionRadiusValue");
+    collisionRadiusValue.textContent = collisionRadius.value;
+    particles.forEach((particle) => {
+      // 将粒子速度乘以一个衰减因子，使速度随时间逐渐减小
+      const damping = parseFloat(dampingSlider.value) / 100;
+      particle.vx *= 1-damping;
+      particle.vy *= 1-damping;
+        
+      // 根据温度添加随机扰动
+      particle.vx += (Math.random() - 0.5) * temp * 2;
+      particle.vy += (Math.random() - 0.5) * temp * 2;
+  
+      particle.x += particle.vx;
+      particle.y += particle.vy;
+  
+      if (particle.x < 0) particle.x = canvas.width;
+      if (particle.y < 0) particle.y = canvas.height;
+      if (particle.x > canvas.width) particle.x = 0;
+      if (particle.y > canvas.height) particle.y = 0;
+    });
+  
+  for (let i = 0; i < particles.length; i++) {
+    for (let j = i + 1; j < particles.length; j++) {
+      const dx = particles[i].x - particles[j].x;
+      const dy = particles[i].y - particles[j].y;
+      const distanceSquared = dx * dx + dy * dy;
+      const collisionRadius = parseFloat(document.getElementById("collisionRadius").value);
+    if (distanceSquared < collisionRadius * collisionRadius) {
+        if ((particles[i].type === 'R' && particles[j].type === 'S') || (particles[i].type === 'S' && particles[j].type === 'R')) {
+            if (Math.random() < p0) {
+            particles[i].type = 'A';
+            particles[j].type = 'A';
+            }
+        } else if ((particles[i].type === 'A' && particles[j].type === 'R') || (particles[i].type === 'R' && particles[j].type === 'A')) {
+            if (Math.random() < pr) {
+            particles[i].type = 'R';
+            particles[j].type = 'R';
+            }
+        } else if ((particles[i].type === 'A' && particles[j].type === 'S') || (particles[i].type === 'S' && particles[j].type === 'A')) {
+            if (Math.random() < ps) {
+            particles[i].type = 'S';
+            particles[j].type = 'S';
+            }
+        } else if (particles[i].type === 'R' && particles[j].type === 'R') {
+            if (Math.random() < 1 - pr) {
+            particles[i].type = 'R';
+            particles[j].type = 'A';
+            }
+        } else if (particles[i].type === 'S' && particles[j].type === 'S') {
+            if (Math.random() < 1 - ps) {
+            particles[i].type = 'S';
+            particles[j].type = 'A';
+            }
+        } else if (particles[i].type === 'A' && particles[j].type === 'A') {
+            if (Math.random() < 1 - p0) {
+            particles[i].type = 'R';
+            particles[j].type = 'S';
+            } else {
+            particles[i].type = 'S';
+            particles[j].type = 'R';
+            }
+        }
+        }
+
+
+    }
+  }
+}
+
+function drawParticles() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const ShadRadius = parseFloat(document.getElementById("collisionRadius").value);
+    const DrawRadius = 6;
+    particles.forEach((particle) => {
+      if (particle.type === "A") {
+        ctx.fillStyle = "green";
+        ctx.beginPath();
+        ctx.arc(particle.x, particle.y, DrawRadius, 0, 2 * Math.PI);
+        ctx.shadowColor = "green";
+        ctx.shadowBlur = ShadRadius;
+        ctx.fill();
+      } else if (particle.type === "R") {
+        ctx.fillStyle = "red";
+        ctx.fillRect(particle.x - DrawRadius, particle.y - DrawRadius,DrawRadius*2, DrawRadius*2);
+        ctx.shadowColor = "red";
+        ctx.shadowBlur = ShadRadius;
+      } else if (particle.type === "S") {
+        ctx.fillStyle = "blue";
+        ctx.beginPath();
+        ctx.moveTo(particle.x, particle.y - DrawRadius);
+        ctx.lineTo(particle.x + DrawRadius, particle.y + DrawRadius);
+        ctx.lineTo(particle.x - DrawRadius, particle.y + DrawRadius);
+        ctx.shadowColor = "blue";
+        ctx.shadowBlur = ShadRadius;
+        ctx.closePath();
+        ctx.fill();
+      }
+    });
+  }
+
+function updateAndDraw() {
+updateParticles();
+drawParticles();
+requestAnimationFrame(updateAndDraw);
+}
+
+initializeSystem();
+updateParameters();
+updateAndDraw();
+
+
+  </script>
+
+</div>
+  <button class="language-switcher" onclick="switchLanguage()">English</button>
+
+</body>
+</html>
