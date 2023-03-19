@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Non-Reciprocal Vicsek Model</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+    }
+
+    #simulationCanvas {
+      display: block;
+      position: absolute;
+    }
+
+    #controlCenter {
+      position: absolute;
+      left: 10px;
+      top: 10px;
+      padding: 10px;
+      background-color: rgba(255, 255, 255, 0.7);
+      border-radius: 5px;
+    }
+
+    #controlCenter {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(255, 255, 255, 0.8);
+  padding: 10px;
+  border-radius: 5px;
+}
+
+fieldset {
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 15px;
+  margin-bottom: 10px;
+}
+
+legend {
+  font-weight: bold;
+}
+
+.checkboxContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 5px;
+}
+
+.sliderInput {
+  width: 100%;
+}
+
+.sliderContainer label {
+  margin-bottom: 5px;
+}
+
+
+    .sliderContainer {
+        display: block;
+        width: 160px;
+        text-align: left;
+    }
+
+    .slider {
+      margin-left: 5px;
+    }
+
+    .slider-container {
+        display: block;
+        width: 120px;
+        text-align: center;
+      }
+
+  </style>
+</head>
+<body>
+    
+  <canvas id="simulationCanvas"></canvas>
+  <div id="controlCenter">
+    <fieldset>
+      <legend>Controls</legend>
+      <div class="sliderContainer">
+        <label>Particles: <span id="numParticlesValue">1500</span></label>
+        <input type="range" min="10" max="3000" value="1500" class="slider sliderInput" id="numParticles">
+      </div>
+      <div class="sliderContainer">
+        <label>Speed: <span id="speedValue">7</span></label>
+        <input type="range" min="0.1" max="15" step="0.1" value="7" class="slider sliderInput" id="speed">
+      </div>
+      <div class="sliderContainer">
+        <label>Fish A Ratio: <span id="fishARatioValue">0.5</span></label>
+        <input type="range" min="0" max="1" step="0.01" value="0.5" class="slider sliderInput" id="fishARatio">
+      </div>
+      <div class="sliderContainer">
+        <label>A-A / B-B: <span id="sameFishWeightValue">.5</span></label>
+        <input type="range" min="0" max="1" step="0.01" value=".5" class="slider sliderInput" id="sameFishWeight">
+      </div>
+      <div class="sliderContainer">
+        <label>B-A: <span id="baFishWeightValue">-0.2</span></label>
+        <input type="range" min="-1" max="1" step="0.01" value="-0.2" class="slider sliderInput" id="baFishWeight">
+      </div>
+      <div class="sliderContainer">
+        <label>A-B: <span id="abFishWeightValue">1</span></label>
+        <input type="range" min="-1" max="1" step="0.01" value="1" class="slider sliderInput" id="abFishWeight">
+      </div>
+      <div class="sliderContainer">
+        <label>Interaction Radius: <span id="radiusValue">20</span></label>
+        <input type="range" min="1" max="30" value="20" class="slider sliderInput" id="radius">
+      </div>
+      <div class="sliderContainer">
+        <label>Noise: <span id="noiseValue">0.1</span></label>
+        <input type="range" min="0" max="1" step="0.001" value="0.1" class="slider sliderInput" id="noise">
+      </div>
+      <div class="sliderContainer">
+        <label>Particle Size: <span id="particleSizeValue">5</span></label>
+        <input type="range" min="1" max="20" value="5" class="slider sliderInput" id="particleSize">
+      </div>
+      <div class="selectContainer">
+        <label>Particle Type:</label>
+        <select id="particleType">
+          <option value="arrow">Fish</option>
+          <option value="dot">Dot</option>
+        </select>
+      </div>
+      <div >
+        <label for="invertColors">Invert Color:</label>
+        <input type="checkbox" id="invertColors">
+      </div>
+    </fieldset>
+  </div>
+  
+
+    <script>
+      const canvas = document.getElementById('simulationCanvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+  
+      const numParticlesSlider = document.getElementById('numParticles');
+      const numParticlesValue = document.getElementById('numParticlesValue');
+      const speedSlider = document.getElementById('speed');
+      const speedValue = document.getElementById('speedValue');
+      const radiusSlider = document.getElementById('radius');
+      const radiusValue = document.getElementById('radiusValue');
+      const noiseSlider = document.getElementById('noise');
+      const noiseValue = document.getElementById('noiseValue');
+      const particleSizeSlider = document.getElementById('particleSize');
+      const particleSizeValue = document.getElementById('particleSizeValue');
+      const particleTypeSelect = document.getElementById('particleType');
+      const invertColorsCheckbox = document.getElementById('invertColors');
+      const fishARatioSlider = document.getElementById('fishARatio');
+      const fishARatioValue = document.getElementById('fishARatioValue');
+      const sameFishWeightSlider = document.getElementById('sameFishWeight');
+      const sameFishWeightValue = document.getElementById('sameFishWeightValue');
+      const baFishWeightSlider = document.getElementById('baFishWeight');
+      const baFishWeightValue = document.getElementById('baFishWeightValue');
+      const abFishWeightSlider = document.getElementById('abFishWeight');
+      const abFishWeightValue = document.getElementById('abFishWeightValue');
+
+
+      let NUM_PARTICLES = parseInt(numParticlesSlider.value);
+      let SPEED = parseFloat(speedSlider.value);
+      let INTERACTION_RADIUS = parseFloat(radiusSlider.value);
+      let NOISE = parseFloat(noiseSlider.value);
+      let PARTICLE_SIZE = parseFloat(particleSizeSlider.value);
+      let PARTICLE_TYPE = particleTypeSelect.value;
+      let INVERT_COLORS = invertColorsCheckbox.checked;
+      let FISH_A_RATIO = parseFloat(fishARatioSlider.value);
+      let SAME_FISH_WEIGHT = parseFloat(sameFishWeightSlider.value);
+      let OPPOSITE_FISH_WEIGHT = parseFloat(baFishWeightSlider.value);
+      let AB_FISH_WEIGHT = parseFloat(abFishWeightSlider.value);
+
+      abFishWeightSlider.oninput = function() {
+        AB_FISH_WEIGHT = parseFloat(this.value);
+        abFishWeightValue.innerHTML = this.value;
+      }
+
+      fishARatioSlider.oninput = function() {
+        FISH_A_RATIO = parseFloat(this.value);
+        fishARatioValue.innerHTML = this.value;
+        resetParticles();
+      }
+
+      sameFishWeightSlider.oninput = function() {
+        SAME_FISH_WEIGHT = parseFloat(this.value);
+        sameFishWeightValue.innerHTML = this.value;
+      }
+
+      baFishWeightSlider.oninput = function() {
+        OPPOSITE_FISH_WEIGHT = parseFloat(this.value);
+        baFishWeightValue.innerHTML = this.value;
+      }
+      numParticlesSlider.oninput = function() {
+        NUM_PARTICLES = parseInt(this.value);
+        numParticlesValue.innerHTML = this.value;
+        resetParticles();
+      }
+  
+      speedSlider.oninput = function() {
+        SPEED = parseFloat(this.value);
+        speedValue.innerHTML = this.value;
+      }
+  
+      radiusSlider.oninput = function() {
+        INTERACTION_RADIUS = parseFloat(this.value);
+        radiusValue.innerHTML = this.value;
+      }
+
+  
+      noiseSlider.oninput = function() {
+        NOISE = parseFloat(this.value);
+        noiseValue.innerHTML = this.value;
+      }
+  
+      particleSizeSlider.oninput = function() {
+        PARTICLE_SIZE = parseFloat(this.value);
+        particleSizeValue.innerHTML = this.value;
+      }
+  
+      particleTypeSelect.onchange = function() {
+        PARTICLE_TYPE = this.value;
+      }
+  
+      invertColorsCheckbox.onchange = function() {
+        INVERT_COLORS = this.checked;
+      }
+  
+      class Particle {
+        constructor(x, y, angle, fishType) {
+        this.x = x;
+        this.y = y;
+        this.angle = angle;
+        this.fishType = fishType;
+      }
+
+      update(particles) {
+        let sumX = 0;
+        let sumY = 0;
+        let count = 0;
+
+        particles.forEach(particle => {
+          const dx = this.x - particle.x;
+          const dy = this.y - particle.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+
+          if (distance < INTERACTION_RADIUS * 2 && distance > 0) {
+            let weight;
+            if (this.fishType === 'A' && particle.fishType === 'B') {
+              weight = AB_FISH_WEIGHT;
+            } else if (this.fishType === 'B' && particle.fishType === 'A') {
+              weight = OPPOSITE_FISH_WEIGHT;
+            } else {
+              weight = this.fishType === particle.fishType ? SAME_FISH_WEIGHT : OPPOSITE_FISH_WEIGHT;
+            }
+            sumX += Math.cos(particle.angle) * weight;
+            sumY += Math.sin(particle.angle) * weight;
+            count += Math.abs(weight);
+          }
+        });
+
+
+        if (count > 0) {
+            const avgAngle = Math.atan2(sumY / count, sumX / count);
+            const noise = (Math.random() - 0.5) * NOISE;
+            this.angle = (avgAngle + noise + 2 * Math.PI) % (2 * Math.PI);
+        } else {
+            const noise = (Math.random() - 0.5) * NOISE;
+            this.angle = (this.angle + noise + 2 * Math.PI) % (2 * Math.PI);
+        }
+        this.angle += (Math.random() - 0.5) * NOISE ;
+
+        this.x += SPEED * Math.cos(this.angle);
+        this.y += SPEED * Math.sin(this.angle);
+
+        if (this.x < 0) this.x += canvas.width;
+        if (this.x > canvas.width) this.x -= canvas.width;
+        if (this.y < 0) this.y += canvas.height;
+        if (this.y > canvas.height) this.y -= canvas.height;
+      }
+
+
+      draw() {    
+        // 画出 interaction radius
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, INTERACTION_RADIUS, 0, 2 * Math.PI);
+        ctx.fillStyle = this.fishType === 'A' ? 'rgba(200, 50, 50, 0.01)' : 'rgba(50, 50, 200, 0.01)';
+        ctx.fill();
+
+        if (INVERT_COLORS) {
+        ctx.fillStyle = this.fishType === 'A' ? 'rgb(255, 100, 100)' : 'rgb(100, 100, 255)';
+        ctx.strokeStyle = this.fishType === 'A' ? 'rgb(255, 100, 100)' : 'rgb(100, 100, 255)';
+        } else {
+          ctx.fillStyle = this.fishType === 'A' ? 'rgb(200, 50, 50)' : 'rgb(50, 50, 200)';
+          ctx.strokeStyle = this.fishType === 'A' ? 'rgb(200, 50, 50)' : 'rgb(50, 50, 200)';
+        }
+
+        if (PARTICLE_TYPE === 'dot') {
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, PARTICLE_SIZE, 0, 2 * Math.PI);
+          ctx.fill();
+        } else if (PARTICLE_TYPE === 'arrow') {
+            ctx.save();
+          ctx.translate(this.x, this.y);
+          ctx.rotate(this.angle);
+
+          // 鱼的身体
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.quadraticCurveTo(PARTICLE_SIZE * 1.4, -PARTICLE_SIZE, PARTICLE_SIZE * 1.7, 0);
+          ctx.quadraticCurveTo(PARTICLE_SIZE * 1.4, PARTICLE_SIZE, 0, 0);
+          ctx.fill();
+
+          // 鱼的尾巴
+          ctx.beginPath();
+          ctx.moveTo(-PARTICLE_SIZE * 0.2, 0);
+          ctx.lineTo(-PARTICLE_SIZE * 1.2, -PARTICLE_SIZE / 2);
+          ctx.lineTo(-PARTICLE_SIZE * 1.2, PARTICLE_SIZE / 2);
+          ctx.closePath();
+          ctx.fill();
+
+          // 鱼头
+          ctx.beginPath();
+          ctx.arc(PARTICLE_SIZE * 1.7, 0, PARTICLE_SIZE / 2, 0, 2 * Math.PI);
+          ctx.fill();
+
+
+          ctx.restore();
+        }
+      }
+    }
+
+    let particles = [];
+
+    function createParticle() {
+      const x = Math.random() * canvas.width;
+      const y = Math.random() * canvas.height;
+      const angle = (Math.random())* Math.PI *2 ;
+      const fishType = Math.random() < FISH_A_RATIO ? 'A' : 'B';
+      const particle = new Particle(x, y, angle, fishType);
+      return particle;
+    }
+
+    function resetParticles() {
+      particles = [];
+      for (let i = 0; i < NUM_PARTICLES; i++) {
+        particles.push(createParticle());
+      }
+    }
+
+    resetParticles();
+
+    function animate() {
+      if (INVERT_COLORS) {
+        ctx.fillStyle = 'black';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      } else {
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+
+      particles.forEach(particle => {
+        particle.update(particles);
+        particle.draw();
+      });
+
+      requestAnimationFrame(animate);
+    }
+
+    animate();
+  </script>
+</body>
+</html>
+
+  

@@ -13,8 +13,9 @@ Here are some simulations in the project, click on the link to view the correspo
 
 1. [XY Model](./XY_model.html)
 2. [Vicsek Model for Collective Motion](./interactive_vicsek.html)
-3. [Phase Separation](./phase_separation.html)
-4. [Spontaneous Chiral Symmetry Breaking](./SCSB.html)
+3. [Non-Reciprocal Vicsek Model](./non-reciprocal_vicsek.html)
+4. [Phase Separation](./phase_separation.html)
+5. [Spontaneous Chiral Symmetry Breaking](./SCSB.html)
 
 
 `*The correctness of the physics is not guaranteed, please check the source code for confirmation.`
@@ -51,8 +52,9 @@ This project is licensed under the [MIT License](./LICENSE).
 
 1. [XY模型](./XY_model.html)
 2. [Vicsek鱼群模型](./interactive_vicsek.html)
-3. [相分离](./phase_separation.html)
-4. [自发手性破缺化学反应模拟](./SCSB.html)
+3. [非互异Vicsek模型](./non-reciprocal_vicsek.html)
+4. [相分离](./phase_separation.html)
+5. [自发手性破缺化学反应模拟](./SCSB.html)
 
 `*物理的正确性和准确性无法保证，请检查原始代码确认。`
 ### 鼠标互动
