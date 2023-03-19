@@ -125,7 +125,7 @@
       </div>
       <div class="sliderContainer">
         <label>Interaction Radius: <span id="radiusValue">20</span></label>
-        <input type="range" min="1" max="100" value="20" class="slider sliderInput" id="radius">
+        <input type="range" min="1" max="150" value="20" class="slider sliderInput" id="radius">
       </div>
       <div class="sliderContainer">
         <label>Noise: <span id="noiseValue">0.1</span></label>
@@ -265,9 +265,16 @@
         let sumY = 0;
         let count = 0;
 
+        const periodic = (dx, dy) => {
+          const dxPeriodic = (dx + canvas.width) % canvas.width;
+          const dyPeriodic = (dy + canvas.height) % canvas.height;
+          const dxMin = Math.abs(dxPeriodic) < canvas.width / 2 ? dxPeriodic : dxPeriodic - canvas.width;
+          const dyMin = Math.abs(dyPeriodic) < canvas.height / 2 ? dyPeriodic : dyPeriodic - canvas.height;
+          return { dx: dxMin, dy: dyMin };
+        }
+
         particles.forEach(particle => {
-          const dx = this.x - particle.x;
-          const dy = this.y - particle.y;
+          const { dx, dy } = periodic(this.x - particle.x, this.y - particle.y);
           const distance = Math.sqrt(dx * dx + dy * dy);
 
           if (distance < INTERACTION_RADIUS * 2 && distance > 0) {
