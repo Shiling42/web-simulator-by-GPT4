@@ -10,10 +10,22 @@
       overflow: hidden;
       font-family: Arial, sans-serif;
     }
+    .collapsed fieldset {
+      display: none;
+    }
 
+    .control-toggle {
+      position: fixed;
+      top: 11px;
+      left: 15px;
+      z-index: 100;
+      cursor: pointer;
+      font-weight: bold;
+      border-radius: 5px;
+    }
     #simulationCanvas {
       display: block;
-      position: absolute;
+      position: top;
     }
 
     #controlCenter {
@@ -26,40 +38,40 @@
     }
 
     #controlCenter {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: center;
-  background-color: rgba(255, 255, 255, 0.8);
-  padding: 10px;
-  border-radius: 5px;
-}
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 10px;
+    border-radius: 5px;
+    }
 
-fieldset {
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  padding: 15px;
-  margin-bottom: 10px;
-}
+    fieldset {
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      padding: 15px;
+      margin-bottom: 10px;
+    }
 
-legend {
-  font-weight: bold;
-}
+    legend {
+      font-weight: bold;
+    }
 
-.checkboxContainer {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin: 5px;
-}
+    .checkboxContainer {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 5px;
+    }
 
-.sliderInput {
-  width: 100%;
-}
+    .sliderInput {
+      width: 100%;
+    }
 
-.sliderContainer label {
-  margin-bottom: 5px;
-}
+    .sliderContainer label {
+      margin-bottom: 5px;
+    }
 
 
     .sliderContainer {
@@ -84,6 +96,7 @@ legend {
     
   <canvas id="simulationCanvas"></canvas>
   <div id="controlCenter">
+    <div class="control-toggle" id="controlToggle">●</div>
     <fieldset>
       <legend>Controls</legend>
       <div class="sliderContainer">
@@ -177,6 +190,13 @@ legend {
       let OPPOSITE_FISH_WEIGHT = parseFloat(baFishWeightSlider.value);
       let AB_FISH_WEIGHT = parseFloat(abFishWeightSlider.value);
 
+      document.addEventListener('DOMContentLoaded', () => {
+        const controlCenter = document.getElementById('controlCenter');
+        const controlToggle = document.getElementById('controlToggle');
+        controlToggle.addEventListener('click', () => {
+          controlCenter.classList.toggle('collapsed');
+        });
+      });
       abFishWeightSlider.oninput = function() {
         AB_FISH_WEIGHT = parseFloat(this.value);
         abFishWeightValue.innerHTML = this.value;
