@@ -73,6 +73,11 @@ This project is licensed under the [MIT License](./LICENSE).
 
 本项目采用 [MIT 许可证](./LICENSE)。
 
-----
+<div style="text-align:center; font-size: 2em; margin: 20px 0;">
+  <span style="border-top: 1px solid #999; padding: 0 10px;">❧</span>
+</div>
 
-<br><br><br><br><br><br>
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=Shiling42/web-simulator-by-GPT4&type=Date)](https://star-history.com/#Shiling42/web-simulator-by-GPT4&Date)
+
